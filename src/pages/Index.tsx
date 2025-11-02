@@ -17,7 +17,7 @@ const Index = () => {
   // 設定段考日期 - 台灣時區 (GMT+8)
   // 格式：Date.UTC(年, 月-1, 日, 時-8, 分, 秒) - 需要減8小時來設定為台灣時間
   const examDate = new Date(Date.UTC(2025, 10, 27, -8, 0, 0)); // 第二次段考：11/27 台灣時間 00:00
-  const examStartDate = new Date(Date.UTC(2025, 8, 1, -8, 0, 0)); // 學期開始日期
+  const examStartDate = new Date(Date.UTC(2025, 9, 16, -8, 0, 0)); // 學期開始日期
 
   return (
     <div className="min-h-screen flex w-full bg-background">
@@ -94,7 +94,7 @@ const Index = () => {
 
         <footer className="border-t border-primary/20 bg-gradient-to-r from-background to-primary/5 py-6 px-4 lg:px-6">
           <div className="max-w-7xl mx-auto text-center text-sm text-muted-foreground">
-            <p>© 2025 崇明國中 Chongming Junior High School</p>
+            <p>© 2025 崇明國中 by nocfond</p>
           </div>
         </footer>
       </div>
