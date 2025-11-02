@@ -23,24 +23,19 @@ const Progress = React.forwardRef<
     >
       {reverse ? (
         <>
-          {/* 已過時間 - 灰色 (左側) */}
+          {/* 剩餘時間 - 漸變色 (左側) */}
           <div 
-            className="absolute left-0 top-0 h-full bg-muted transition-all"
-            style={{ width: `${progressValue}%` }}
-          />
-          {/* 剩餘時間 - 漸變色 (右側) */}
-          <div 
-            className="absolute right-0 top-0 h-full bg-gradient-to-r from-[hsl(210,75%,55%)] to-[hsl(271,81%,56%)] transition-all"
+            className="absolute left-0 top-0 h-full bg-gradient-to-r from-[hsl(210,75%,55%)] to-[hsl(271,81%,56%)] transition-all"
             style={{ width: `${remainingValue}%` }}
           >
             {gradient && remainingValue > 0 && (
               <>
-                {/* 進度條左側（分界處）光暈效果 */}
-                <div className="absolute left-0 top-0 h-full w-12 bg-gradient-to-r from-white/30 via-blue-300/20 to-transparent pointer-events-none" />
-                <div className="absolute left-0 top-0 h-full w-8 bg-gradient-to-r from-white/50 to-transparent animate-pulse pointer-events-none" />
+                {/* 進度條右側（分界處）光暈效果 */}
+                <div className="absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-white/30 via-purple-300/20 to-transparent pointer-events-none" />
+                <div className="absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-white/50 to-transparent animate-pulse pointer-events-none" />
                 
-                {/* 分界處冒出的白色粒子 */}
-                <div className="absolute left-0 top-0 h-full w-1 overflow-visible pointer-events-none">
+                {/* 分界處冒出的白色粒子（向左噴射） */}
+                <div className="absolute right-0 top-0 h-full w-1 overflow-visible pointer-events-none">
                   {[...Array(15)].map((_, i) => (
                     <div
                       key={`particle-${i}`}
@@ -56,6 +51,11 @@ const Progress = React.forwardRef<
               </>
             )}
           </div>
+          {/* 已過時間 - 灰色 (右側) */}
+          <div 
+            className="absolute right-0 top-0 h-full bg-muted transition-all"
+            style={{ width: `${progressValue}%` }}
+          />
         </>
       ) : (
         <ProgressPrimitive.Indicator
