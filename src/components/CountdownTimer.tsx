@@ -99,7 +99,7 @@ export function CountdownTimer({ targetDate, startDate, label }: CountdownTimerP
           <span>上次至本次段考剩餘進度</span>
           <span>{isComplete ? "100% 完成" : `${(100 - progress).toFixed(1)}% 剩餘`}</span>
         </div>
-        <Progress value={progress} gradient className="h-2" />
+        <Progress value={progress} gradient reverse className="h-2" />
         {isComplete && (
           <div className="text-center mt-3 text-base font-semibold text-primary animate-fade-in">
             ✓ 已到達

@@ -187,8 +187,26 @@ All colors MUST be HSL.
     }
   }
 
+  @keyframes particle-burst-reverse {
+    0% {
+      transform: translate(0, 0) scale(1);
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+    100% {
+      transform: translate(-35px, calc((var(--particle-id, 0) - 7) * 3px)) scale(0.2);
+      opacity: 0;
+    }
+  }
+
   .animate-particle-burst {
     animation: particle-burst ease-out infinite;
+  }
+
+  .animate-particle-burst-reverse {
+    animation: particle-burst-reverse ease-out infinite;
   }
 
   .animate-particle-burst:nth-child(1) { --particle-id: 0; }
