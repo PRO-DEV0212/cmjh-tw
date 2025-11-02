@@ -34,7 +34,7 @@ const Progress = React.forwardRef<
             {[...Array(15)].map((_, i) => (
               <div
                 key={`particle-${i}`}
-                className="absolute h-1 w-1 bg-white rounded-full animate-particle-burst shadow-[0_0_4px_rgba(255,255,255,0.8)]"
+                className="absolute h-1 w-1 bg-white rounded-full animate-particle-burst-reverse shadow-[0_0_4px_rgba(255,255,255,0.8)]"
                 style={{
                   top: `${20 + Math.random() * 60}%`,
                   animationDelay: `${(i * 0.15)}s`,
