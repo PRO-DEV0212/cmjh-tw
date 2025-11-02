@@ -96,7 +96,7 @@ export function CountdownTimer({ targetDate, startDate, label }: CountdownTimerP
       
       <div className="space-y-2">
         <div className="flex justify-between text-sm text-muted-foreground">
-          <span>時間進度</span>
+          <span>上次至本次段考剩餘進度</span>
           <span>{isComplete ? "100% 完成" : `${(100 - progress).toFixed(1)}% 剩餘`}</span>
         </div>
         <Progress value={progress} gradient className="h-2" />
