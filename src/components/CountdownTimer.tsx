@@ -10,17 +10,26 @@ interface CountdownConfig {
   progressLabel: string;
 }
 
+// 輔助函數：直接輸入台灣時間，自動轉換為正確的 Date 對象
+// 使用方式：taiwanTime(年, 月, 日, 時, 分, 秒)
+// 例如：taiwanTime(2025, 11, 13, 0, 0, 0) 代表 2025年11月13日 00:00 台灣時間
+const taiwanTime = (year: number, month: number, day: number, hour = 0, minute = 0, second = 0): Date => {
+  // 台灣時區是 UTC+8，所以要減去 8 小時來得到 UTC 時間
+  return new Date(Date.UTC(year, month - 1, day, hour - 8, minute, second));
+};
+
 // 倒數計時配置列表 - 可以直接在這裡修改
+// 現在可以直接輸入台灣時間，不用再計算時區了！
 const countdownConfigs: CountdownConfig[] = [
   {
-    targetDate: new Date(Date.UTC(2025, 10, 12, 16, 0, 0)), // 2025-11-13 00:00 台灣時間
-    startDate: new Date(Date.UTC(2025, 9, 2, 16, 0, 0)), // 2025-10-03 00:00 台灣時間
+    targetDate: taiwanTime(2025, 11, 13, 0, 0, 0), // 2025年11月13日 00:00
+    startDate: taiwanTime(2025, 10, 3, 0, 0, 0),   // 2025年10月3日 00:00
     label: "第二次段考倒數",
     progressLabel: "上次至本次段考進度條"
   },
   {
-    targetDate: new Date(Date.UTC(2025, 11, 31, 16, 0, 0)), // 2026-01-01 00:00 台灣時間
-    startDate: new Date(Date.UTC(2025, 0, 1, 16, 0, 0)), // 2025-01-01 00:00 台灣時間
+    targetDate: taiwanTime(2026, 1, 1, 0, 0, 0),   // 2026年1月1日 00:00
+    startDate: taiwanTime(2025, 1, 1, 0, 0, 0),    // 2025年1月1日 00:00
     label: "2026年倒數",
     progressLabel: "2025年進度條"
   }
