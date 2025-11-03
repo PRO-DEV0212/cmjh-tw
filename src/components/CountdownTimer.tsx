@@ -22,9 +22,9 @@ const taiwanTime = (year: number, month: number, day: number, hour = 0, minute =
 // 現在可以直接輸入台灣時間，不用再計算時區了！
 const countdownConfigs: CountdownConfig[] = [
   {
-    targetDate: taiwanTime(2025, 11, 13, 0, 0, 0), // 2025年11月13日 00:00
-    startDate: taiwanTime(2025, 10, 3, 0, 0, 0),   // 2025年10月3日 00:00
-    label: "第二次段考倒數",
+    targetDate: taiwanTime(2025, 11, 27, 0, 0, 0), // 2025年11月13日 00:00
+    startDate: taiwanTime(2025, 10, 16, 0, 0, 0),   // 2025年10月3日 00:00
+    label: "第二次段考倒數 11/27 11/28",
     progressLabel: "上次至本次段考進度條"
   },
   {
