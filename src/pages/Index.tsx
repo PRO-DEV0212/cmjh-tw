@@ -5,6 +5,7 @@ import { CalendarView } from "@/components/CalendarView";
 import { SearchDialog } from "@/components/SearchDialog";
 import { FavoritesDialog } from "@/components/FavoritesDialog";
 import { CountdownTimer } from "@/components/CountdownTimer";
+import { WeatherWidget } from "@/components/WeatherWidget";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { School } from "lucide-react";
 
@@ -13,6 +14,7 @@ const Index = () => {
   const announcementsAnim = useScrollAnimation();
   const calendarAnim = useScrollAnimation();
   const countdownAnim = useScrollAnimation();
+  const weatherAnim = useScrollAnimation();
 
   return (
     <div className="min-h-screen flex w-full bg-background">
@@ -49,8 +51,19 @@ const Index = () => {
             </div>
 
             <div
-              ref={commonSitesAnim.ref}
+              ref={weatherAnim.ref}
               className={`transition-all duration-700 ${
+                weatherAnim.isVisible
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 translate-y-8"
+              }`}
+            >
+              <WeatherWidget />
+            </div>
+
+            <div
+              ref={commonSitesAnim.ref}
+              className={`transition-all duration-700 delay-100 ${
                 commonSitesAnim.isVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-8"
@@ -61,7 +74,7 @@ const Index = () => {
 
             <div
               ref={announcementsAnim.ref}
-              className={`transition-all duration-700 delay-100 ${
+              className={`transition-all duration-700 delay-200 ${
                 announcementsAnim.isVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-8"
@@ -72,7 +85,7 @@ const Index = () => {
 
             <div
               ref={calendarAnim.ref}
-              className={`transition-all duration-700 delay-200 ${
+              className={`transition-all duration-700 delay-300 ${
                 calendarAnim.isVisible
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-8"
