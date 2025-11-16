@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Cloud, CloudRain, Sun, CloudSnow, Wind, Droplets, MapPin } from "lucide-react";
+import { Cloud, CloudRain, Sun, CloudSnow, Wind, Droplets, MapPin, AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const API_KEY = "CWA-6AEC6F91-948A-464F-9DC1-AC1B8361153D";
-const TAINAN_CODE = "F-D0047-079"; // 台南市代碼
+const TAINAN_CODE = "F-D0047-079";
 
 interface WeatherElement {
   elementName: string;
@@ -43,35 +44,66 @@ export const WeatherWidget = () => {
   const [towns, setTowns] = useState<string[]>([]);
   const [weatherData, setWeatherData] = useState<TownWeatherData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>("");
 
   const fetchWeather = async (town?: string) => {
     setLoading(true);
+    setError("");
+    
     try {
-      // ⭐ 修正：使用反引號
-      const response = await fetch(
-        `https://opendata.cwa.gov.tw/api/v1/rest/datastore/${TAINAN_CODE}?Authorization=${API_KEY}`
-      );
+      // 方法1：標準格式
+      const url = `https://opendata.cwa.gov.tw/api/v1/rest/datastore/${TAINAN_CODE}?Authorization=${API_KEY}`;
+      
+      console.log("🌐 請求 URL:", url);
+      
+      const response = await fetch(url);
+      
+      console.log("📡 Response Status:", response.status);
+      console.log("📡 Response OK:", response.ok);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
+      }
+      
       const data = await response.json();
+      console.log("📦 完整 API 回應:", data);
 
-      console.log("API Response:", data); // 除錯用
+      // 檢查 API 回應格式
+      if (data.success === "true") {
+        console.log("✅ API 調用成功");
+        
+        if (data.records?.locations?.[0]?.location) {
+          const locations = data.records.locations[0].location;
+          console.log("📍 找到的地點數量:", locations.length);
+          
+          const townNames = locations.map((loc: any) => loc.locationName);
+          setTowns(townNames);
 
-      if (data.success === "true" && data.records?.locations?.[0]?.location) {
-        const locations = data.records.locations[0].location;
-        const townNames = locations.map((loc: any) => loc.locationName);
-        setTowns(townNames);
+          const targetTown = town || selectedTown || townNames[0];
+          setSelectedTown(targetTown);
 
-        const targetTown = town || selectedTown || townNames[0];
-        setSelectedTown(targetTown);
-
-        const townData = locations.find((loc: any) => loc.locationName === targetTown);
-        if (townData) {
-          setWeatherData(townData);
+          const townData = locations.find((loc: any) => loc.locationName === targetTown);
+          
+          if (townData) {
+            console.log("✅ 成功取得天氣資料:", targetTown);
+            console.log("📊 天氣元素:", townData.weatherElement.map((e: any) => e.elementName));
+            setWeatherData(townData);
+          } else {
+            setError(`找不到 ${targetTown} 的天氣資料`);
+          }
+        } else {
+          console.error("❌ 資料結構異常:", data);
+          setError("API 返回的資料結構不符合預期");
         }
       } else {
-        console.error("API 返回錯誤:", data);
+        console.error("❌ API 返回 success = false");
+        console.error("錯誤訊息:", data.message || "未知錯誤");
+        setError(`API 錯誤: ${data.message || "請檢查 API Key 是否有效"}`);
       }
-    } catch (error) {
-      console.error("Failed to fetch weather:", error);
+      
+    } catch (error: any) {
+      console.error("💥 捕獲錯誤:", error);
+      setError(error.message || "網路請求失敗");
     } finally {
       setLoading(false);
     }
@@ -94,92 +126,96 @@ export const WeatherWidget = () => {
     return <Sun className="h-8 w-8" />;
   };
 
-  // ⭐ 新增：將時段資料整理成每日資料
   const getDailyForecast = (): DailyWeather[] => {
     if (!weatherData) return [];
 
-    const wxElement = weatherData.weatherElement.find(e => e.elementName === "Wx");
-    const minTElement = weatherData.weatherElement.find(e => e.elementName === "MinT");
-    const maxTElement = weatherData.weatherElement.find(e => e.elementName === "MaxT");
-    const popElement = weatherData.weatherElement.find(e => e.elementName === "PoP12h");
-    const ciElement = weatherData.weatherElement.find(e => e.elementName === "CI");
-    const rhElement = weatherData.weatherElement.find(e => e.elementName === "RH");
-    const wsElement = weatherData.weatherElement.find(e => e.elementName === "WS");
-    const wdElement = weatherData.weatherElement.find(e => e.elementName === "WD");
+    try {
+      const wxElement = weatherData.weatherElement.find(e => e.elementName === "Wx");
+      const minTElement = weatherData.weatherElement.find(e => e.elementName === "MinT");
+      const maxTElement = weatherData.weatherElement.find(e => e.elementName === "MaxT");
+      const popElement = weatherData.weatherElement.find(e => e.elementName === "PoP12h");
+      const ciElement = weatherData.weatherElement.find(e => e.elementName === "CI");
+      const rhElement = weatherData.weatherElement.find(e => e.elementName === "RH");
+      const wsElement = weatherData.weatherElement.find(e => e.elementName === "WS");
+      const wdElement = weatherData.weatherElement.find(e => e.elementName === "WD");
 
-    // 按日期分組
-    const dailyMap = new Map<string, any[]>();
-
-    wxElement?.time.forEach((timeSlot, index) => {
-      const date = new Date(timeSlot.startTime);
-      const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
-
-      if (!dailyMap.has(dateKey)) {
-        dailyMap.set(dateKey, []);
+      if (!wxElement?.time) {
+        console.warn("⚠️ 找不到天氣資料");
+        return [];
       }
 
-      dailyMap.get(dateKey)?.push({
-        wx: wxElement.time[index]?.elementValue[0]?.value || "N/A",
-        minTemp: minTElement?.time[index]?.elementValue[0]?.value || null,
-        maxTemp: maxTElement?.time[index]?.elementValue[0]?.value || null,
-        pop: popElement?.time[index]?.elementValue[0]?.value || "0",
-        ci: ciElement?.time[index]?.elementValue[0]?.value || "N/A",
-        rh: rhElement?.time[index]?.elementValue[0]?.value || "N/A",
-        ws: wsElement?.time[index]?.elementValue[0]?.value || "N/A",
-        wd: wdElement?.time[index]?.elementValue[0]?.value || "N/A",
-      });
-    });
+      const dailyMap = new Map<string, any[]>();
 
-    // 轉換為每日摘要（取前3天）
-    const dailyForecasts: DailyWeather[] = [];
-    let dayCount = 0;
+      wxElement.time.forEach((timeSlot, index) => {
+        const date = new Date(timeSlot.startTime);
+        const dateKey = date.toISOString().split('T')[0];
 
-    for (const [dateKey, slots] of Array.from(dailyMap.entries())) {
-      if (dayCount >= 3) break;
+        if (!dailyMap.has(dateKey)) {
+          dailyMap.set(dateKey, []);
+        }
 
-      const date = new Date(dateKey);
-      const dayOfWeek = ['日', '一', '二', '三', '四', '五', '六'][date.getDay()];
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      let dayLabel = "";
-      const diffDays = Math.floor((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-      if (diffDays === 0) dayLabel = "今天";
-      else if (diffDays === 1) dayLabel = "明天";
-      else if (diffDays === 2) dayLabel = "後天";
-
-      // 找出最常見的天氣狀況
-      const wxList = slots.map(s => s.wx).filter(w => w !== "N/A");
-      const mostCommonWx = wxList.length > 0 ? wxList[0] : "N/A";
-
-      // 取得最高/最低溫
-      const minTemps = slots.map(s => parseFloat(s.minTemp)).filter(t => !isNaN(t));
-      const maxTemps = slots.map(s => parseFloat(s.maxTemp)).filter(t => !isNaN(t));
-      const minTemp = minTemps.length > 0 ? Math.min(...minTemps) : 0;
-      const maxTemp = maxTemps.length > 0 ? Math.max(...maxTemps) : 0;
-
-      // 取得最高降雨機率
-      const pops = slots.map(s => parseInt(s.pop)).filter(p => !isNaN(p));
-      const maxPop = pops.length > 0 ? Math.max(...pops) : 0;
-
-      dailyForecasts.push({
-        date: dateKey,
-        dateDisplay: `${date.getMonth() + 1}/${date.getDate()} 週${dayOfWeek}`,
-        dayLabel,
-        wx: mostCommonWx,
-        minTemp,
-        maxTemp,
-        pop: maxPop.toString(),
-        ci: slots[0]?.ci || "N/A",
-        rh: slots[0]?.rh || "N/A",
-        ws: slots[0]?.ws || "N/A",
-        wd: slots[0]?.wd || "N/A",
+        dailyMap.get(dateKey)?.push({
+          wx: wxElement.time[index]?.elementValue[0]?.value || "N/A",
+          minTemp: minTElement?.time[index]?.elementValue[0]?.value || null,
+          maxTemp: maxTElement?.time[index]?.elementValue[0]?.value || null,
+          pop: popElement?.time[index]?.elementValue[0]?.value || "0",
+          ci: ciElement?.time[index]?.elementValue[0]?.value || "N/A",
+          rh: rhElement?.time[index]?.elementValue[0]?.value || "N/A",
+          ws: wsElement?.time[index]?.elementValue[0]?.value || "N/A",
+          wd: wdElement?.time[index]?.elementValue[0]?.value || "N/A",
+        });
       });
 
-      dayCount++;
+      const dailyForecasts: DailyWeather[] = [];
+      let dayCount = 0;
+
+      for (const [dateKey, slots] of Array.from(dailyMap.entries())) {
+        if (dayCount >= 3) break;
+
+        const date = new Date(dateKey);
+        const dayOfWeek = ['日', '一', '二', '三', '四', '五', '六'][date.getDay()];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        let dayLabel = "";
+        const diffDays = Math.floor((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        if (diffDays === 0) dayLabel = "今天";
+        else if (diffDays === 1) dayLabel = "明天";
+        else if (diffDays === 2) dayLabel = "後天";
+
+        const wxList = slots.map(s => s.wx).filter(w => w !== "N/A");
+        const mostCommonWx = wxList.length > 0 ? wxList[0] : "N/A";
+
+        const minTemps = slots.map(s => parseFloat(s.minTemp)).filter(t => !isNaN(t));
+        const maxTemps = slots.map(s => parseFloat(s.maxTemp)).filter(t => !isNaN(t));
+        const minTemp = minTemps.length > 0 ? Math.min(...minTemps) : 0;
+        const maxTemp = maxTemps.length > 0 ? Math.max(...maxTemps) : 0;
+
+        const pops = slots.map(s => parseInt(s.pop)).filter(p => !isNaN(p));
+        const maxPop = pops.length > 0 ? Math.max(...pops) : 0;
+
+        dailyForecasts.push({
+          date: dateKey,
+          dateDisplay: `${date.getMonth() + 1}/${date.getDate()} 週${dayOfWeek}`,
+          dayLabel,
+          wx: mostCommonWx,
+          minTemp,
+          maxTemp,
+          pop: maxPop.toString(),
+          ci: slots[0]?.ci || "N/A",
+          rh: slots[0]?.rh || "N/A",
+          ws: slots[0]?.ws || "N/A",
+          wd: slots[0]?.wd || "N/A",
+        });
+
+        dayCount++;
+      }
+
+      return dailyForecasts;
+    } catch (err) {
+      console.error("處理天氣資料時發生錯誤:", err);
+      return [];
     }
-
-    return dailyForecasts;
   };
 
   const dailyForecast = getDailyForecast();
@@ -194,7 +230,6 @@ export const WeatherWidget = () => {
           <MapPin className="h-5 w-5 text-primary" />
         </div>
 
-        {/* 鄉鎮選擇 */}
         {towns.length > 0 && (
           <Select value={selectedTown} onValueChange={setSelectedTown}>
             <SelectTrigger className="mt-2">
@@ -212,6 +247,23 @@ export const WeatherWidget = () => {
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {/* 錯誤提示 */}
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <p className="font-semibold">無法載入天氣資料</p>
+              <p className="text-sm mt-1">{error}</p>
+              <button 
+                onClick={() => fetchWeather()} 
+                className="text-sm underline mt-2"
+              >
+                點擊重試
+              </button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {loading ? (
           <div className="space-y-3">
             <div className="grid grid-cols-1 gap-3">
@@ -228,7 +280,6 @@ export const WeatherWidget = () => {
               </p>
             </div>
 
-            {/* 未來3天預報 */}
             <div className="grid grid-cols-1 gap-3">
               {dailyForecast.map((day, index) => (
                 <div
@@ -239,12 +290,9 @@ export const WeatherWidget = () => {
                       : 'bg-gradient-to-br from-muted/50 to-muted/30 border-border/50 hover:border-primary/30'
                   }`}
                 >
-                  {/* 日期標題 */}
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <p className="text-lg font-bold">
-                        {day.dayLabel}
-                      </p>
+                      <p className="text-lg font-bold">{day.dayLabel}</p>
                       <p className="text-xs text-muted-foreground">{day.dateDisplay}</p>
                     </div>
                     <div className="text-primary">
@@ -252,7 +300,6 @@ export const WeatherWidget = () => {
                     </div>
                   </div>
 
-                  {/* 天氣與溫度 */}
                   <div className="grid grid-cols-2 gap-4 mb-3">
                     <div>
                       <p className="text-base font-semibold mb-2">{day.wx}</p>
@@ -266,11 +313,10 @@ export const WeatherWidget = () => {
                       </div>
                     </div>
 
-                    {/* 詳細資訊 */}
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center gap-2">
                         <Droplets className="h-4 w-4 text-blue-500" />
-                        <span className="text-muted-foreground">降雨率</span>
+                        <span className="text-muted-foreground">降雨</span>
                         <span className="font-bold ml-auto text-blue-600">{day.pop}%</span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -286,7 +332,6 @@ export const WeatherWidget = () => {
                     </div>
                   </div>
 
-                  {/* 舒適度 */}
                   {day.ci !== "N/A" && (
                     <div className="pt-2 border-t border-border/30">
                       <p className="text-xs text-muted-foreground">
@@ -298,12 +343,11 @@ export const WeatherWidget = () => {
               ))}
             </div>
           </>
-        ) : (
+        ) : !error ? (
           <div className="text-center py-8">
-            <p className="text-muted-foreground">無法取得天氣資訊</p>
-            <p className="text-xs text-muted-foreground mt-2">請檢查網路連線或稍後再試</p>
+            <p className="text-muted-foreground">無天氣資料</p>
           </div>
-        )}
+        ) : null}
       </CardContent>
     </Card>
   );
