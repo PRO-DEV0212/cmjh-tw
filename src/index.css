@@ -51,8 +51,13 @@ All colors MUST be HSL.
     --gradient-primary: linear-gradient(135deg, hsl(210 75% 48%), hsl(210 75% 60%));
     --gradient-accent: linear-gradient(135deg, hsl(45 93% 58%), hsl(45 93% 68%));
     --gradient-progress: linear-gradient(90deg, hsl(210 75% 55%), hsl(271 81% 56%));
+    --gradient-card: linear-gradient(135deg, hsl(210 20% 99%), hsl(210 40% 97%));
+    --gradient-calendar: linear-gradient(to bottom right, hsl(210 75% 48% / 0.05), hsl(271 81% 56% / 0.05));
+    --gradient-timer: linear-gradient(135deg, hsl(210 75% 48% / 0.15), hsl(271 81% 56% / 0.1));
+    --gradient-site: linear-gradient(to bottom right, hsl(210 75% 48% / 0.03), hsl(45 93% 58% / 0.03));
     --shadow-card: 0 2px 8px hsl(210 75% 48% / 0.08);
-    --shadow-card-hover: 0 4px 16px hsl(210 75% 48% / 0.12);
+    --shadow-card-hover: 0 8px 24px hsl(210 75% 48% / 0.16);
+    --shadow-glow: 0 0 20px hsl(210 75% 48% / 0.2);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
@@ -94,8 +99,13 @@ All colors MUST be HSL.
     --sidebar-border: 0 0% 20%;
     --sidebar-ring: 210 75% 55%;
 
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 14%), hsl(0 0% 12%));
+    --gradient-calendar: linear-gradient(to bottom right, hsl(210 75% 55% / 0.1), hsl(271 81% 56% / 0.1));
+    --gradient-timer: linear-gradient(135deg, hsl(210 75% 55% / 0.2), hsl(271 81% 56% / 0.15));
+    --gradient-site: linear-gradient(to bottom right, hsl(210 75% 55% / 0.08), hsl(45 93% 58% / 0.08));
     --shadow-card: 0 2px 8px hsl(0 0% 0% / 0.2);
-    --shadow-card-hover: 0 4px 16px hsl(0 0% 0% / 0.3);
+    --shadow-card-hover: 0 8px 24px hsl(0 0% 0% / 0.35);
+    --shadow-glow: 0 0 20px hsl(210 75% 55% / 0.3);
   }
 
   .theme-blue, [data-theme="blue"] {
